@@ -18,23 +18,38 @@ const storage = multer.diskStorage({
 const upload = multer({storage});
 const router = express.Router();
 
-router.get('/', upload.single('image'), async (req, res)=> {
+router.get('/:id?', upload.single('image'), async (req, res)=> {
     if(req.query.artist){
-        
-    }
+       try {
 
-    const body = {...req.body};
-
-    if(req.file) {
-        body.image = req.file.filename;
-    }
-
-    try{
-        const album = await Album.find();
+        const album = await Album.find({name: req.query.artist});
         res.send(album);
-    } catch{
-        res.sendStatus(500);
+
+       } catch (error) {
+
+         res.sendStatus(404);
+       } 
+
+    } else if(req.params.id){
+        try {
+            const album = await Album.findById(req.params.id);
+            res.send(album);
+
+        } catch (error) {
+            res.sendStatus(404).send(e);
+        }
+    } else {
+       try {
+            const album = await Album.find();
+            res.send(album);
+
+       } catch (error) {
+
+        res.sendStatus(500).send(e);
+
+       }
     }
+
 })
 
 
@@ -49,10 +64,12 @@ router.post('/', upload.single('image'), async (req, res) => {
     const album = new Album(body);
 
     try {
+
         await album.save();
         res.send(album);
 
     } catch (e) {
+
         res.status(400).send(e);
     }
 })
